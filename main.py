@@ -24,7 +24,21 @@ A股自选股智能分析系统 - 主调度程序
 import os
 from src.config import setup_env
 setup_env()
+# 导入自动选股函数
+try:
+    from src.selector import auto_select_stocks
+except ImportError:
+    # 备用：如果导入失败，用默认股
+    def auto_select_stocks():
+        return ['600519', '601318', '000858', '300750', '002594']
 
+# 读取手动配置的股票列表，若无则自动选股
+stock_list_str = os.getenv("STOCK_LIST", "")
+if not stock_list_str.strip():  # 如果手动配置为空，自动选股
+    selected_stocks = auto_select_stocks()
+    stock_list_str = ",".join(selected_stocks)
+# 拆分股票列表（供后续分析使用）
+stock_list = [s.strip() for s in stock_list_str.split(",") if s.strip()]
 # 代理配置 - 通过 USE_PROXY 环境变量控制，默认关闭
 # GitHub Actions 环境自动跳过代理配置
 if os.getenv("GITHUB_ACTIONS") != "true" and os.getenv("USE_PROXY", "false").lower() == "true":
